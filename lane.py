@@ -4,7 +4,7 @@ import wifimgr
 import micropython
 micropython.alloc_emergency_exception_buf(100)
 
-class Lane(object):
+class Lane:
     def __init__(self,laneNumber,lanePin):
         self.laneNumber = laneNumber
         self.lanePin = lanePin

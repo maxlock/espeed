@@ -29,7 +29,7 @@ class Lane:
                 self.lapComplete = True
 
     def lapTime(self):
-        return self.lapTimestamp-self.lastLapTimestamp
+        return (self.lapTimestamp-self.lastLapTimestamp)/1e6
 
     def isLapBegun(self):
         if self.lapTimestamp == 0:

@@ -17,4 +17,4 @@ while True:
     for alane in lanes:
         if alane.isLapBegun:
             if alane.isLapComplete():
-                print(alane.number(),alane.lapTime()/1e6)
+                print(alane.number(),alane.lapTime())

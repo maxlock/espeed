@@ -1,6 +1,5 @@
 from machine import Pin
 import utime
-import wifimgr
 import micropython
 micropython.alloc_emergency_exception_buf(100)
 
@@ -17,8 +16,6 @@ class Lane:
     
     def handler(self,t):
         now = utime.ticks_us()
-        if utime.ticks_diff(now,self.lapTimestamp) < 0:
-            print("clock rollover")
         if utime.ticks_diff(now,self.lapTimestamp) > 5e5:
             if self.lapTimestamp == 0:
                 self.lastLapTimestamp = now
@@ -29,7 +26,11 @@ class Lane:
                 self.lapComplete = True
 
     def lapTime(self):
-        return (self.lapTimestamp-self.lastLapTimestamp)/1e6
+        if (self.lapTimestamp-self.lastLapTimestamp) > 0:
+            return (self.lapTimestamp-self.lastLapTimestamp)/1e6
+        else:
+            print("clock rollover")
+            return ((2^30-self.lapTimestamp)+self.lastLapTimestamp)/1e6
 
     def isLapBegun(self):
         if self.lapTimestamp == 0:

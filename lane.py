@@ -29,8 +29,7 @@ class Lane:
         if (self.lapTimestamp-self.lastLapTimestamp) > 0:
             return (self.lapTimestamp-self.lastLapTimestamp)/1e6
         else:
-            print("clock rollover")
-            return ((2^30-self.lapTimestamp)+self.lastLapTimestamp)/1e6
+            return ((1073741824-self.lapTimestamp)+self.lastLapTimestamp)/1e6
 
     def isLapBegun(self):
         if self.lapTimestamp == 0:

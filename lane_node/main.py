@@ -1,33 +1,59 @@
-import wifimgr
-import usocket
-from lane import Lane
+#import wifimgr
+import uselect,usocket
+#from lane import Lane
 
-wlan = wifimgr.get_connection()
-if wlan is None:
-    print("Could not initialize the network connection.")
-    while True:
-        pass
+#wlan = wifimgr.get_connection()
+#if wlan is None:
+#    print("Could not initialize the network connection.")
+#    while True:
+#        pass
 
-addr = usocket.getaddrinfo('0.0.0.0', 8266)[0][-1]
 server = usocket.socket()
+addr = usocket.getaddrinfo('0.0.0.0', 8266)[0][-1]
+server.setsockopt(usocket.SOL_SOCKET, usocket.SO_REUSEADDR, 1)
 server.bind(addr)
-server.setblocking(0)
 server.listen(1)
-(socket,sockaddr) = server.accept()
+server.setblocking(0)
 
-print('listening')
-lanes = []
+poll = uselect.poll()
+poll.register(server, uselect.POLLIN)
+sockets = {}
+sockets[server.fileno()] = server
 
 #for laneNumber,lanePin in enumerate(req):
 #    lanes.append(Lane(int(laneNumber),int(lanePin)))
-
-while True:
-    d = socket.readline()
-    print(str(d))
 
 #    for alane in lanes:
 #        if alane.isLapComplete():
 #            print(alane.number(),alane.lapTime())
 #            conn.sendall(str(alane.number())+','+str(alane.lapTime())+'\n')
 
-#conn.close()
+def doCommand(data):
+    print(data)
+    return(b'hello')
+
+while True:
+    for fd, event in poll.poll():
+
+        if event == uselect.POLLIN:
+            if fd.fileno() == server.fileno():
+                client, addr = server.accept()
+                poll.register(client, uselect.POLLIN)
+                sockets[client.fileno()] = client
+                client.send(b"espeed lane node\r\n")
+            else:
+                client = sockets[fd.fileno()]
+                data = client.readline()
+                if len(data) == 0 or data == b'disclientnect':
+                    poll.modify(client, uselect.POLLOUT)
+                else:
+                    client.send(doCommand(data))
+
+        elif event == uselect.POLLOUT:
+            client = sockets[fd.fileno()]
+            sockets.pop(fd.fileno())
+            client.send(b"goodbye!")
+            poll.unregister(client)
+            client.close()
+
+
